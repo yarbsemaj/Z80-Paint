@@ -25,6 +25,7 @@
 ;move cursor to (C,B)				
 moveCursor:		
 				push	HL
+				push	AF
 				ld		A,$1B
 				rst     08H
 				ld		A,'['
@@ -38,6 +39,22 @@ moveCursor:
 				ld		H,0
 				call	HLToDec
 				ld		A,'f'
+				rst     08H
+				pop		AF
+				pop		HL
+				ret
+
+;set colour c = colour				
+setConsoleColour:		
+				push	HL
+				ld		A,$1B
+				rst     08H
+				ld		A,'['
+				rst     08H
+				ld		L,C
+				ld		H,0
+				call	HLToDec
+				ld		A,'m'
 				rst     08H
 				pop		HL
 				ret
