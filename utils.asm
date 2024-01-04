@@ -84,3 +84,64 @@ Num2:			inc		a
 				sbc		hl,bc
 				rst     08H
 				ret
+
+;--------Print textBlockAtPos
+	;HL Start of sprite
+	;C  Sprite X
+	;B  Sprite Y
+
+printAtPos:		PUSH 	AF					; Preserve AF				
+printAtPosLoop: CALL	moveCursor			; Move cursor to start of line
+				CALL	print				; Print Line
+				INC		B
+				INC		HL
+				LD      A,(HL)          	; Get character
+                OR      A               	; Is it $00 ?
+				INC		HL
+                JR      NZ,printAtPosLoop   ; Continue until $00		
+				POP		AF
+				RET
+
+;------------Draw Box
+;C Start X
+;B Start Y
+
+;D Width
+;E Height
+drawBox:
+				DEC		E
+				DEC		E
+				CALL	moveCursor			; Move cursor to start of line
+				PUSH	BC
+				LD		B,D
+topLineLoop:	LD		A,'#'
+				RST		08H
+				DJNZ	topLineLoop			;Print Top line
+				DEC		D					;Remove padding for left and right bars
+				DEC		D
+				LD		B,E
+boxBodyLoop:	LD		E,B
+				POP		BC
+				INC		B
+				CALL	moveCursor
+				PUSH	BC
+				LD		A,'#'
+				RST		08H
+				LD		B,D
+boxContentLoop:	LD		A,' '
+				RST		08H
+				DJNZ	boxContentLoop
+				LD		A,'#'
+				RST		08H
+				LD		B,E
+				DJNZ	boxBodyLoop
+				POP		BC
+				INC		B
+				CALL	moveCursor			; Move cursor to start of line
+				INC		D
+				INC		D
+				LD		B,D
+bottomLineLoop:	LD		A,'#'
+				RST		08H
+				DJNZ	bottomLineLoop			;Print Top line
+				RET

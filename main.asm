@@ -2,17 +2,18 @@ CR              .EQU     0DH
 LF              .EQU     0AH
 
 oldStackPointer	.EQU	89F0H		;Old Stack Location 
-canvas     	    .EQU    0A000H       ;Canvas Location
+canvas     	    .EQU    0D000H       ;Canvas Location
 
 	.ORG 9000H
 			ld		(oldStackPointer), SP
 			ld		sp,0FFFFH
 			ld		hl, hideCursor	;Hide Cursor
 			call	print
-            call    clearCanvas
+			call drawTitleScreen
+            ;call    clearCanvas
     main:
-            call    drawCanvas
-            call    printUI
+            ;call    drawCanvas
+            ;call    printUI
     mainLoop:
             call    input
             jp      mainLoop
@@ -21,6 +22,11 @@ include input.asm
 include canvas.asm
 include ui.asm
 include utils.asm
+include titleScreen.asm
+
+
+	titleScreenImage:
+		incbin "IMAGE.bin"
 
 
 home            defb   	1BH,"[H",0
