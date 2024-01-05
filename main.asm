@@ -9,11 +9,10 @@ canvas     	    .EQU    0D000H       ;Canvas Location
 			ld		sp,0FFFFH
 			ld		hl, hideCursor	;Hide Cursor
 			call	print
-			call drawTitleScreen
-            ;call    clearCanvas
-    main:
-            ;call    drawCanvas
-            ;call    printUI
+			jp 	drawTitleScreen
+	main:
+			call	drawCanvas
+			call	printUI
     mainLoop:
             call    input
             jp      mainLoop
@@ -30,7 +29,9 @@ include titleScreen.asm
 
 
 home            defb   	1BH,"[H",0
+cls      	  	defb    1BH,"[H",1BH,"[2J",0
 hideCursor	  	defb	1BH,"[?25l",0
+showCursor	  	defb	1BH,"[?25h",0
 gradient        defb    " .'`^",34,",:;Il!i><~+_-?][}{1)(|\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",0
 
 cursorX         defb 0

@@ -16,13 +16,17 @@
 			cp		'S'
 			jr		z,moveDown
 			cp		'D'
-			jr		z,moveRight
+			jp		z,moveRight
             cp      'P'
             jp      z,togglePen
             cp      'F'                 ;Move char left
             jp      z,charPickerDown
             cp      'G'                 ;Move char right
             jp      z,charPickerUp
+            cp      'K'                 ;Move char right
+            jp      z,save
+            cp      03h                 ;break
+            jp      z,backToTitle
 			jr      input
 
 	setColour:
@@ -132,3 +136,25 @@
             ld      (hl), a
             call    drawCanvasAtCursor
             ret
+
+    save:
+            ld      hl, canvas
+            ld      bc, 4096        ;4096 bytes to clear
+    saveLoop:
+            ld      a,(hl)          ;Load Char
+            push    bc
+            call    NumToHex
+            pop     bc
+            inc     hl              ;Move to next position
+            dec     bc              ;Decrement counter
+            ld      a, b            ;16 bit equal to 0?
+            or      c               
+            jr      nz, saveLoop
+            rst		10H                 ;Wait for a char to come in
+            call	drawCanvas
+			call	printUI
+            ret 
+
+    backToTitle:
+            pop     af              ;Pop return address for input
+            jp      drawTitleScreen

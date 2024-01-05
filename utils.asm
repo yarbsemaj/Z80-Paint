@@ -145,3 +145,66 @@ bottomLineLoop:	LD		A,'#'
 				RST		08H
 				DJNZ	bottomLineLoop			;Print Top line
 				RET
+
+;Number to HEX
+NumToHex    	ld 		c, a   		; a = number to convert
+            	call 	Num1ToHex
+            	RST     08H
+            	ld 		a, c
+            	call 	Num2ToHex
+            	RST     08H
+            	ret
+
+Num1ToHex       rra
+            	rra
+            	rra
+           		rra
+Num2ToHex       or 		$F0
+            	daa
+            	add 	a, $A0
+            	adc 	a, $40 		; Ascii hex at this point (0 to F)   
+            	ret
+
+;Read Byte
+READBYTEM:							; Reads a byte in hex from the console
+				call 	READNIBBLEM
+         		call 	Hex1M
+         		add  	a,a
+         		add  	a,a
+         		add  	a,a
+         		add  	a,a
+         		ld   	d,a
+         		call 	READNIBBLEM
+         		call 	Hex1M
+         		or   	d
+         		ret
+
+READNIBBLEM:
+				RST     10H
+				LD		B,A
+				JP		CHECKVALID
+CHARVALID:
+				LD		A,B
+				RST     08H
+				RET
+
+Hex1M:     		
+				sub  '0'
+         		cp   10
+         		ret  c
+         		sub  'A'-'0'-10
+         		ret
+CHECKVALID:    
+				LD		A,B
+				SUB		'0'
+				JP		M,READNIBBLEM
+				SUB		$A				; Subtract 10
+				JP		M,CHARVALID
+				LD		A,B
+				AND     11011111b       ; lower to uppercase
+				LD		B,A
+				SUB		'A'
+				JP		M,READNIBBLEM
+				SUB		$6				; Subtract 10
+				JP		M,CHARVALID
+				JP		READNIBBLEM

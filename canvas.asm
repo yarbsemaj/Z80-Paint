@@ -70,7 +70,7 @@
 
 ;Draw the whole screen
     drawCanvas:
-            ld		hl, home		    ;Clear screen
+            ld		hl, cls		    ;Clear screen
 	        call    print
             ld      hl, canvas
             ld      b, 32              ;32 rows
@@ -80,10 +80,31 @@
     drawColLoop:
             call    drawCellToCanvas    ;draw cell
             djnz    drawColLoop
-            call    newline             ;todo, position colum
+            call    newline             
             pop     bc
             djnz    drawCol
 			call	drawCursor
+            ret
+
+	;Draw the whole screen
+    drawTitleScreenCanvas:
+            ld		hl, cls		    ;Clear screen
+	        call    print
+            ld      hl, canvas
+            ld      b, 32              ;32 rows
+    drawTitleCol:
+            push    bc
+            ld      b, 64              ;64 Colums
+    drawTitleColLoop:
+            call    drawCellToCanvas    ;draw cell
+            djnz    drawTitleColLoop
+            call    newline
+			push	hl
+			ld		hl,padding
+			call	print
+			pop		hl 
+            pop     bc
+            djnz    drawTitleCol
             ret
 
 ;Draw cell in address HL
@@ -135,3 +156,4 @@
 
 cursorD     defb    1BH,"[30;107m","`",1BH,"[0m",0
 cursorU     defb    1BH,"[97;40m","`",1BH,"[0m",0
+padding     defb    1BH,"[0m   ",0
