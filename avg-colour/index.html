@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My HTML Page</title>
+    <style>
+        @font-face {
+            font-family: 'Windows Command Prompt';
+            src: url('/fonts/Windows-Command-Prompt.woff2') format('woff2'),
+                url('/fonts/Windows-Command-Prompt.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+    </style>
+</head>
+
+<body style="background-color: black;">
+    <canvas id="image" width="10px" height="16px"></canvas>
+    <canvas id="input" width="64px" height="32px"></canvas>
+    <canvas id="output" width="640px" height="512px"></canvas>
+    <script>
+        const canvas = document.getElementById('image');
+        const ctx = canvas.getContext('2d');
+        const charsString = " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+        const colors = ["#000000", "#800000", "#008000", "#808000", "#000080", "#800080", "#008080", "#c0c0c0", "#808080", "#ff0000", "#00ff00", "#ffff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff"]
+        const bg = ["#000000"]
+        const chars = charsString.split('');
+
+        const output = {}
+
+        ctx.font = "16px Windows Command Prompt, monospace";
+
+        ctx.width = 10;
+        ctx.height = 16;
+
+        for (const background of colors) {
+            for (const foreground of colors) {
+                for (const char of chars) {
+                    ctx.fillStyle = background;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = foreground;
+                    ctx.fillText(char, 0, 12);
+
+                    // Calculate the average color
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const data = imageData.data;
+                    let totalRed = 0;
+                    let totalGreen = 0;
+                    let totalBlue = 0;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        totalRed += data[i];
+                        totalGreen += data[i + 1];
+                        totalBlue += data[i + 2];
+                    }
+
+                    const averageRed = Math.round(totalRed / (data.length / 4));
+                    const averageGreen = Math.round(totalGreen / (data.length / 4));
+                    const averageBlue = Math.round(totalBlue / (data.length / 4));
+
+                    const averageColor = rgbToHex(averageRed, averageGreen, averageBlue);
+                    output[averageColor] = {
+                        background,
+                        foreground,
+                        char,
+                        averageColor,
+                        red: averageRed,
+                        green: averageGreen,
+                        blue: averageBlue
+                    };
+                }
+            }
+        }
+
+        // Convert output to CSV
+        let csv = 'background,foreground,char,averageColor\n';
+        Object.values(output).forEach(item => {
+            /*
+            if (item.char === '"') {
+                item.char = `'"'`;
+            } else {
+                item.char = `"${item.char}"`;
+            }
+            */
+            csv += `${item.background},${item.foreground},${item.char},${item.averageColor}\n`;
+        });
+
+        //console.log(csv);
+
+        const image = new Image();
+        image.src = '/tut2.png';
+        image.onload = () => {
+            const inputCanvas = document.getElementById('input');
+            const inputCtx = inputCanvas.getContext('2d');
+            inputCtx.drawImage(image, 0, 0, inputCanvas.width, inputCanvas.height);
+
+            const imageData = inputCtx.getImageData(0, 0, inputCanvas.width, inputCanvas.height).data;
+
+            let numberInCols = 64;
+
+            let outputData = [];
+
+            for (let i = 0; i < imageData.length; i += 4) {
+                let red = imageData[i];
+                let green = imageData[i + 1];
+                let blue = imageData[i + 2];
+
+                const pallet = Object.values(output)
+
+                const closest = pallet.reduce((prev, curr) => {
+                    return (Math.abs(curr.red - red) + Math.abs(curr.green - green) + Math.abs(curr.blue - blue) < Math.abs(prev.red - red) + Math.abs(prev.green - green) + Math.abs(prev.blue - blue) ? curr : prev);
+                });
+
+                outputData.push(closest)
+            }
+
+            const outputCanvas = document.getElementById('output');
+            const outputCtx = outputCanvas.getContext('2d');
+            outputCtx.font = "16px Windows Command Prompt, monospace";
+
+            for (let i = 0; i < outputData.length; i++) {
+                let char = outputData[i];
+                let col = i % numberInCols;
+                let row = Math.floor(i / numberInCols);
+                outputCtx.fillStyle = char.background;
+                outputCtx.fillRect((col + 1) * 10 - 10, row * 16, 10, 16);
+                outputCtx.fillStyle = char.foreground;
+                outputCtx.fillText(char.char, col * 10, ((row + 1) * 16) - 3);
+            }
+
+            console.log(outputData)
+
+            let byteArray = new Uint8Array(outputData.length * 2)
+
+            for (let i = 0; i < outputData.length; i++) {
+                let char = outputData[i];
+                byteArray[i * 2] = chars.indexOf(char.char)
+                const fg = colors.indexOf(char.foreground)
+                const bg = colors.indexOf(char.background)
+                const color = (bg << 4) | fg
+                byteArray[i * 2 + 1] = color
+            }
+
+            downloadBlob(byteArray, 'IMAGE.bin', 'application/octet-stream');
+
+
+        }
+
+        function rgbToHex(red, green, blue) {
+            const rgb = (red << 16) | (green << 8) | blue;
+            return '#' + (0x1000000 + rgb).toString(16).slice(1);
+        }
+
+        var downloadBlob, downloadURL;
+
+        downloadBlob = function (data, fileName, mimeType) {
+            var blob, url;
+            blob = new Blob([data], {
+                type: mimeType
+            });
+            url = window.URL.createObjectURL(blob);
+            downloadURL(url, fileName);
+            setTimeout(function () {
+                return window.URL.revokeObjectURL(url);
+            }, 1000);
+        };
+
+        downloadURL = function (data, fileName) {
+            var a;
+            a = document.createElement('a');
+            a.href = data;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.style = 'display: none';
+            a.click();
+            a.remove();
+        };
+    </script>
+
+</body>
+
+</html>
