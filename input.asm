@@ -157,4 +157,4 @@
 
     backToTitle:
             pop     af              ;Pop return address for input
-            jp      drawTitleScreen
+            jp      showTitleScreen

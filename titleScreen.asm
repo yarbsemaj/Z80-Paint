@@ -3,6 +3,7 @@
                 ld		hl, titleScreenImage
 				ld		de,	canvas
 				ldir							;Copy the title screen image
+		showTitleScreen:
 				call	drawTitleScreenCanvas
 				ld      bc ,1817H
 			    ld		de ,1F09H 
@@ -25,7 +26,10 @@
 			jr		z,newImage
 			cp		'L'
 			jr		z,load
+			cp		'E'
+			jp		z,main
 			cp		'H'
+			jp		z,help
 			cp		03h
 			jr		z,exit
 			jr      titleInput
@@ -40,6 +44,14 @@
             ld		sp,(oldStackPointer)
 			ret
 
+	help:
+			ld      bc ,0505H
+			ld		de ,3F0AH 
+			call	DrawBox
+            ld      bc ,0606H
+            ld      HL,helpMessage
+            call    printAtPos
+			jr      titleInput
 
     load:
             ld      hl, canvas
@@ -66,5 +78,14 @@ logo:
                     defb    "/____|_|   \__,_|_|_| |_|\__|",0,0
 
 
-loadMessage:      defb    "(N)ew, (L)oad or (H)elp",0,0
+loadMessage:      	defb    "(N)ew, (E)dit or (H)elp",0,0
+
+helpMessage:		defb	"Use WASD to move your cursor (`) around the screen.",0,1
+					defb	0,1
+                    defb    "Use the P key to raise and lower the pen.",0,1
+					defb	0,1
+                    defb    "Use the F and G keys to adjust the character to print.",0,1
+					defb	0,1
+                    defb    "To change the pen and ink colours,",0,1
+                    defb    "use the appropriate key indicated to the right of the canvas.",0,0
         

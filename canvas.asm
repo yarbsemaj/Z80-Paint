@@ -93,16 +93,16 @@
             ld      hl, canvas
             ld      b, 32              ;32 rows
     drawTitleCol:
+			push	hl
+			ld		hl,padding
+			call	print
+			pop		hl 
             push    bc
             ld      b, 64              ;64 Colums
     drawTitleColLoop:
             call    drawCellToCanvas    ;draw cell
             djnz    drawTitleColLoop
             call    newline
-			push	hl
-			ld		hl,padding
-			call	print
-			pop		hl 
             pop     bc
             djnz    drawTitleCol
             ret
