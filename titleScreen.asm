@@ -5,6 +5,8 @@
 				ldir							;Copy the title screen image
 		showTitleScreen:
 				call	drawTitleScreenCanvas
+				ld		hl,resetSelected
+				call	print
 				ld      bc ,1817H
 			    ld		de ,1F09H 
 			    call	DrawBox

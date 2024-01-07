@@ -80,6 +80,10 @@
     drawColLoop:
             call    drawCellToCanvas    ;draw cell
             djnz    drawColLoop
+            push    hl
+            ld		hl,resetSelected
+            call	print
+            pop     hl
             call    newline             
             pop     bc
             djnz    drawCol
@@ -103,6 +107,10 @@
             call    drawCellToCanvas    ;draw cell
             djnz    drawTitleColLoop
             call    newline
+            push    hl
+            ld		hl,resetSelected
+            call	print
+            pop     hl
             pop     bc
             djnz    drawTitleCol
             ret
